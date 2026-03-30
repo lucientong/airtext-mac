@@ -1,0 +1,50 @@
+# =========================
+# Swift / Swift Package Manager
+# =========================
+.build/
+.swiftpm/
+Package.resolved
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# =========================
+# App Bundle (build artifact)
+# =========================
+*.app/
+
+# =========================
+# macOS System Files
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.codebuddy/
+.cursor/
+
+# =========================
+# Code Signing
+# =========================
+*.mobileprovision
+*.p12
+*.cer
+
+# =========================
+# Miscellaneous
+# =========================
+*.log
+*.tmp
+*.bak
