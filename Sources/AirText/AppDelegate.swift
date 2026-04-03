@@ -205,6 +205,12 @@ extension AppDelegate: SpeechRecognizerDelegate {
         }
     }
     
+    func speechRecognizer(_ recognizer: SpeechRecognizer, didDetectLanguage language: SpeechLanguage) {
+        DispatchQueue.main.async { [weak self] in
+            self?.floatingPanel.showDetectedLanguage(language)
+        }
+    }
+    
     func speechRecognizer(_ recognizer: SpeechRecognizer, didFailWithError error: Error) {
         print("❌ Speech recognition error: \(error.localizedDescription)")
     }

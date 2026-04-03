@@ -28,6 +28,31 @@ enum SpeechLanguage: String, CaseIterable, Codable {
     }
 }
 
+/// Language mode: either a fixed language or automatic detection
+enum LanguageMode: Codable, Equatable {
+    case auto
+    case fixed(SpeechLanguage)
+    
+    var isAuto: Bool {
+        if case .auto = self { return true }
+        return false
+    }
+    
+    var fixedLanguage: SpeechLanguage? {
+        if case .fixed(let lang) = self { return lang }
+        return nil
+    }
+    
+    var displayName: String {
+        switch self {
+        case .auto:
+            return "Auto Detect"
+        case .fixed(let lang):
+            return lang.displayName
+        }
+    }
+}
+
 /// LLM configuration for text refinement
 struct LLMConfig: Codable, Equatable {
     var baseURL: String
@@ -54,6 +79,7 @@ final class SettingsManager: ObservableObject {
     
     private enum Keys {
         static let speechLanguage = "speechLanguage"
+        static let languageMode = "languageMode"
         static let llmConfig = "llmConfig"
     }
     
@@ -63,10 +89,21 @@ final class SettingsManager: ObservableObject {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     
-    /// Current speech recognition language
-    @Published var speechLanguage: SpeechLanguage {
+    /// Current language mode (auto detect or fixed language)
+    @Published var languageMode: LanguageMode {
         didSet {
-            defaults.set(speechLanguage.rawValue, forKey: Keys.speechLanguage)
+            saveLanguageMode()
+        }
+    }
+    
+    /// Current speech recognition language (for backward compatibility)
+    /// When in auto mode, returns the default language (simplifiedChinese)
+    var speechLanguage: SpeechLanguage {
+        switch languageMode {
+        case .auto:
+            return .simplifiedChinese
+        case .fixed(let lang):
+            return lang
         }
     }
     
@@ -80,12 +117,16 @@ final class SettingsManager: ObservableObject {
     // MARK: - Initialization
     
     init() {
-        // Load speech language with default to Simplified Chinese
-        if let savedLanguage = defaults.string(forKey: Keys.speechLanguage),
-           let language = SpeechLanguage(rawValue: savedLanguage) {
-            self.speechLanguage = language
+        // Load language mode
+        if let data = defaults.data(forKey: Keys.languageMode),
+           let mode = try? decoder.decode(LanguageMode.self, from: data) {
+            self.languageMode = mode
+        } else if let savedLanguage = defaults.string(forKey: Keys.speechLanguage),
+                  let language = SpeechLanguage(rawValue: savedLanguage) {
+            // Migrate from old speechLanguage setting
+            self.languageMode = .fixed(language)
         } else {
-            self.speechLanguage = .simplifiedChinese
+            self.languageMode = .auto
         }
         
         // Load LLM config
@@ -99,9 +140,14 @@ final class SettingsManager: ObservableObject {
     
     // MARK: - Public Methods
     
-    /// Update speech language
+    /// Update speech language (sets fixed mode)
     func setLanguage(_ language: SpeechLanguage) {
-        speechLanguage = language
+        languageMode = .fixed(language)
+    }
+    
+    /// Set language mode (auto or fixed)
+    func setLanguageMode(_ mode: LanguageMode) {
+        languageMode = mode
     }
     
     /// Update LLM configuration
@@ -121,6 +167,12 @@ final class SettingsManager: ObservableObject {
     private func saveLLMConfig() {
         if let data = try? encoder.encode(llmConfig) {
             defaults.set(data, forKey: Keys.llmConfig)
+        }
+    }
+    
+    private func saveLanguageMode() {
+        if let data = try? encoder.encode(languageMode) {
+            defaults.set(data, forKey: Keys.languageMode)
         }
     }
 }

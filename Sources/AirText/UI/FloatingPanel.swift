@@ -148,6 +148,10 @@ final class FloatingPanel: NSPanel {
         contentView_.showRefiningStatus()
     }
     
+    func showDetectedLanguage(_ language: SpeechLanguage) {
+        contentView_.showDetectedLanguage(language)
+    }
+    
     private func updateWidth(_ newWidth: CGFloat) {
         guard let screen = NSScreen.main else { return }
         

@@ -86,6 +86,19 @@ final class FloatingContentView: NSView {
         textLabel.textColor = .secondaryText
     }
     
+    func showDetectedLanguage(_ language: SpeechLanguage) {
+        // Briefly flash the detected language name, then fade back
+        let originalColor = textLabel.textColor
+        textLabel.textColor = .systemGreen
+        
+        // After a short delay, restore the color
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.textLabel.textColor = originalColor
+        }
+        
+        print("🌍 Floating panel: detected \(language.displayName)")
+    }
+    
     func resetTextColor() {
         textLabel.textColor = .transcriptionText
     }

@@ -71,11 +71,24 @@ final class StatusBarMenu: NSObject {
     private func createLanguageSubmenu() -> NSMenu {
         let submenu = NSMenu()
         
+        // Auto Detect option
+        let autoItem = NSMenuItem(title: "Auto Detect", action: #selector(selectAutoDetect(_:)), keyEquivalent: "")
+        autoItem.target = self
+        autoItem.state = settingsManager.languageMode.isAuto ? .on : .off
+        submenu.addItem(autoItem)
+        
+        submenu.addItem(.separator())
+        
+        // Fixed language options
         for language in SpeechLanguage.allCases {
             let item = NSMenuItem(title: language.displayName, action: #selector(selectLanguage(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = language
-            item.state = (language == settingsManager.speechLanguage) ? .on : .off
+            if case .fixed(let current) = settingsManager.languageMode {
+                item.state = (language == current) ? .on : .off
+            } else {
+                item.state = .off
+            }
             submenu.addItem(item)
         }
         
@@ -103,6 +116,21 @@ final class StatusBarMenu: NSObject {
     
     // MARK: - Actions
     
+    @objc private func selectAutoDetect(_ sender: NSMenuItem) {
+        settingsManager.setLanguageMode(.auto)
+        
+        // Update menu states
+        if let submenu = sender.menu {
+            for item in submenu.items {
+                if item.action == #selector(selectAutoDetect(_:)) {
+                    item.state = .on
+                } else {
+                    item.state = .off
+                }
+            }
+        }
+    }
+    
     @objc private func selectLanguage(_ sender: NSMenuItem) {
         guard let language = sender.representedObject as? SpeechLanguage else { return }
         settingsManager.setLanguage(language)
@@ -110,7 +138,11 @@ final class StatusBarMenu: NSObject {
         // Update menu states
         if let submenu = sender.menu {
             for item in submenu.items {
-                item.state = (item.representedObject as? SpeechLanguage == language) ? .on : .off
+                if item.action == #selector(selectAutoDetect(_:)) {
+                    item.state = .off
+                } else {
+                    item.state = (item.representedObject as? SpeechLanguage == language) ? .on : .off
+                }
             }
         }
     }

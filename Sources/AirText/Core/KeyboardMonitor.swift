@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 import CoreGraphics
 import Carbon
 
@@ -37,6 +37,13 @@ final class KeyboardMonitor {
             return
         }
         
+        // Check accessibility permissions first
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+        let trusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
+        if !trusted {
+            print("⚠️ Accessibility permissions not granted yet, event tap may fail")
+        }
+        
         // Create event tap for key events
         // We need to monitor flagsChanged events because Fn key is a modifier
         let eventMask: CGEventMask = (1 << CGEventType.flagsChanged.rawValue) |
@@ -62,6 +69,7 @@ final class KeyboardMonitor {
             userInfo: refcon
         ) else {
             print("❌ Failed to create event tap. Make sure Accessibility permissions are granted.")
+            showAccessibilityAlert()
             return
         }
         
@@ -151,5 +159,24 @@ final class KeyboardMonitor {
         
         // Pass through other flag changes
         return Unmanaged.passRetained(event)
+    }
+    
+    private func showAccessibilityAlert() {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Accessibility Permission Required"
+            alert.informativeText = "AirText needs Accessibility permission to detect the Fn key.\n\nPlease go to System Settings > Privacy & Security > Accessibility and add AirText."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Open System Settings")
+            alert.addButton(withTitle: "Later")
+            
+            let response = alert.runModal()
+            if response == .alertFirstButtonReturn {
+                // Open Accessibility settings
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        }
     }
 }

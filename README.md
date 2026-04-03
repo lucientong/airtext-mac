@@ -126,10 +126,11 @@ airtext-mac/
     ├── Main.swift             # App entry point
     ├── AppDelegate.swift      # App lifecycle & orchestration
     ├── Core/
-    │   ├── AudioEngine.swift       # Real-time audio recording
-    │   ├── KeyboardMonitor.swift   # Global Fn key listener
-    │   ├── SpeechRecognizer.swift  # Apple Speech framework wrapper
-    │   └── TextInjector.swift      # Smart clipboard paste
+    │   ├── AudioEngine.swift            # Real-time audio recording
+    │   ├── AutoLanguageDetector.swift   # Parallel language auto-detection
+    │   ├── KeyboardMonitor.swift        # Global Fn key listener
+    │   ├── SpeechRecognizer.swift       # Apple Speech framework wrapper
+    │   └── TextInjector.swift           # Smart clipboard paste
     ├── Services/
     │   ├── LLMService.swift        # OpenAI-compatible LLM client
     │   └── SettingsManager.swift   # UserDefaults persistence

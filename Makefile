@@ -4,7 +4,6 @@
 APP_NAME = AirText
 BUNDLE_ID = com.airtext.app
 BUILD_DIR = .build
-RELEASE_DIR = $(BUILD_DIR)/release
 APP_BUNDLE = $(APP_NAME).app
 INSTALL_DIR = /Applications
 
@@ -22,7 +21,7 @@ build:
 	@echo "📦 Creating app bundle..."
 	@mkdir -p "$(APP_BUNDLE)/Contents/MacOS"
 	@mkdir -p "$(APP_BUNDLE)/Contents/Resources"
-	@cp "$(BUILD_DIR)/apple/Products/Release/$(APP_NAME)" "$(APP_BUNDLE)/Contents/MacOS/"
+	@cp "$$(swift build $(SWIFT_BUILD_FLAGS) --show-bin-path)/$(APP_NAME)" "$(APP_BUNDLE)/Contents/MacOS/"
 	@cp "Resources/Info.plist" "$(APP_BUNDLE)/Contents/"
 	@if [ -d "Sources/AirText/Resources/Assets.xcassets" ]; then \
 		xcrun actool "Sources/AirText/Resources/Assets.xcassets" \
@@ -43,7 +42,7 @@ debug:
 	@echo "📦 Creating debug app bundle..."
 	@mkdir -p "$(APP_BUNDLE)/Contents/MacOS"
 	@mkdir -p "$(APP_BUNDLE)/Contents/Resources"
-	@cp "$(BUILD_DIR)/debug/$(APP_NAME)" "$(APP_BUNDLE)/Contents/MacOS/"
+	@cp "$$(swift build --show-bin-path)/$(APP_NAME)" "$(APP_BUNDLE)/Contents/MacOS/"
 	@cp "Resources/Info.plist" "$(APP_BUNDLE)/Contents/"
 	@codesign --force --deep --sign - "$(APP_BUNDLE)"
 	@echo "✅ Debug build complete: $(APP_BUNDLE)"
@@ -56,7 +55,7 @@ run: build
 # Run in debug mode
 run-debug: debug
 	@echo "🚀 Running $(APP_NAME) (debug)..."
-	@"$(BUILD_DIR)/debug/$(APP_NAME)"
+	@"$$(swift build --show-bin-path)/$(APP_NAME)"
 
 # Install to /Applications
 install: build
